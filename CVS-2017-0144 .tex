@@ -182,7 +182,7 @@ In hindsight it is obvious to target the SMB protocol as a backdoor. The protoco
 \section{Appendix} \label{Appendix}
 
 \subsection{Buffer Overflow Bug in srv.sys}
-A figure from \cite{h3xduck} with code deconstructed from a vulnerable windows srv.sys is shown in \ref{fig:Ghidra_srv.sys}
+A figure from \cite{h3xduck} with code deconstructed from a vulnerable windows srv.sys is shown in Figure \ref{fig:Ghidra_srv.sys}
 \newline
 Note line 27 the variable “param1” is being casted from an integer (dword) pointer to a short (word). Then in that word the subtraction of itself with another variable piVar1 is stored. Thus we are essentially casting into a short the result of the subtraction of two integers \cite{h3xduck}.
 
