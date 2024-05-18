@@ -39,7 +39,9 @@
 %	TITLE SECTION
 %----------------------------------------------------------------------------------------
 
-
+\usepackage[title,toc,titletoc]{appendix}
+\usepackage{titlesec}
+\usepackage{lscape}
 
 \title{EternalBlue CVE-2017-0144 \\ MICS-204 Report 1, Summer 2024} % Article title, use manual lines breaks (\\) to beautify the layout
 
@@ -79,7 +81,7 @@ EternalBlue first appeared in a leak\cite{Rapid7-on-S0hadow-Broker-Leak} from a 
 \newline
 EternalBlue enables the attacker to launch a shell on the target with windows system privileges. \\
 \newline
-As the vulnerability is in the Microsoft Server Message Block (SMB) protocol, which enables file shares across different users, locations and networks (When you share a folder or access a networks drive, SMB is used) it is not contained by network architecture such as subnets but s able to roam free based on how SMB is managed typically on a corporate network. EternalBlue, giving an attacker a system shell \footnote{The DoublePulsar tool, also leaked in the shadowBrokers release is a part of EternalBlue and runs 'exec' in 'kernel mode' on the target}, in combination with credentials stealing malware e.g Mimikatz, gives the possibility for some highly potent malware to be crafted, which indeed happened (WannaCry, NotPetya etc..). This leaves EternalBlue as the most expensive software vulnerability - yet...  
+As the vulnerability is in the Microsoft Server Message Block (SMB) protocol, which enables file shares across different users, locations and networks (When you share a folder or access a networks drive, SMB is used) it is not contained by network architecture such as subnets but s able to roam free based on how SMB is managed typically on a corporate network. EternalBlue, giving an attacker a system shell \footnote{The DoublePulsar tool, also leaked in the shadowBrokers release is a part of EternalBlue and runs 'exec' in 'kernel mode' on the target}, in combination with credentials stealing malware e.g Mimikatz, gives the possibility for some highly potent malware to be crafted, which indeed happened (WannaCry, NotPetya etc.). This leaves EternalBlue as the most expensive software vulnerability - yet. 
 
 
 
@@ -126,32 +128,31 @@ The FEAlist is a list of key/value properties which are sent with the transactio
 \end{itemize}
 
 
-\subsubsection{Secondary Transactions, unchecked}
+\subsubsection{Secondary Transactions, Heap Grooming}
 When the transaction size is large, SMB splits it into subsequent transactions, see Figure \ref{fig:SMB-transaction}. The client provides the packet size, which is used as offset for memory allocation i.e. the client (attacker) decides where data is stored in memory. The packets of data are kept as "non-paged" by srv.sys on the heap until all the secondary packets have arrived, this is indicated with a flag in the last packet (again the attacker controls that). 
 
-In Figure \ref{fig:SMB-transaction} 'Transaction Sec.' requests can be submitted until the 'N'th' packet containing the end flag. In between, a new handshake for a new transaction can be 'weaved in' while keeping the stream of secondary packets flowing. The system does not check the format of the packets, there are 2 different kinds: 'COM' and 'NT' each with their own secondary packets, the protocol assumes the packet format to be that of the final packet send, therefore it is possible to mix the OS and NT packets. And send the first packet as 'NT' with the incorrect FEAList size followed by a subsequent 'OS' type packets. This allows for sending secondary OS packages with the FEAList buffer overflow 'feature' (if we were sending OS only, the double 16bit FEAList would not be allowed)
+In Figure \ref{fig:SMB-transaction} 'Transaction Sec.' requests can be submitted until the 'N'th' packet containing the end flag. The system does not check the format of the packets, there are 2 different kinds: 'COM' and 'NT' each with their own secondary packets, the protocol assumes the packet format to be that of the final packet send, therefore it is possible to mix the OS and NT packets. And send the first packet as 'NT' with the incorrect FEAList size followed by a subsequent 'OS' type packets. This allows for sending secondary OS packages with the FEAList buffer overflow 'feature' (if we were sending OS only, the double 16bit FEAList would not be allowed)
 \newline
-In appendix a Wireshark dump recorded during exploit is shown, where the transaction starts with NT \footnote{"NT Trans Request"} and subsequent Transactions are of OS type \footnote{"Trans2 Secondary Request"}. In between a new session is started \footnote{"Session Setup AndX"}      
+In appendix a Wireshark dump recorded during exploit is shown. The transaction starts with NT \footnote{"NT Trans Request"} and subsequent transactions are of OS type \footnote{"Trans2 Secondary Request"}.      
 
-\subsubsection{Heap Grooming}
-By controlling when the initial stream of packets is terminated and sending a payload in between start and end, an attacker is able to "groom" the memory and determine where subsequent overflowed data is stored in the heap. When sending secondary messages the input flow of data is kept open until the client sends a 'final' message i.e. the client can keep sending secondary messages directly to the heap. This enables the attacker to manipulate the memory heap with some control over where data is stored. This enables the attacker to 'groom' \cite{zerosum0x0-defcon26} the memory heap and place code for a reverse shell on the target, and eventually execute it. All data in the memory heap has execution privileges, the reverse shell has NT AUTHORITY/SYSTEM privileges - and can do anything on the client, a demo is shown in \nameref{Appendix}      
+\subsubsection{Placement of code - From Remote}
+The last thing needed is to place a payload where functions are executed on the stack. Windows has the "Windows Hardware Abstraction Layer (HAL)" which runs in kernel mode and has a static address \cite{h3xduck} which can be exploited to execute code.  
+\newline  
+In between Sec. Request 1-N in Figure \ref{fig:SMB-transaction} a new handshake for a new transaction can be 'weaved in' \footnote{"Session Setup AndX"} while keeping the stream of secondary packets flowing (See \nameref{Appendix} Figure \ref{fig:wiresharkDump} Wireshark dump packet No.135 Session "Setup and X process" started before the first transaction FID0X0000 is finished in No.168).     
 
-
-
-It looks like the vulnerability was introduced as a consequence of reverse compatibility with different version of the file systems used on windows, and that a goal for file sharing with the SMB protocol is to give user experience as close to working with local files as possible.  
-
-
-
+The second transaction is placed in the spots freed, this can be manipulated using the buffer overflows to happen at the address of HAL - now the attackers code runs...         
 
 \section{Remediation} 
-describe and explain the fix
 
-\subsection{Disable buffer overflow}
-Patching this was super simple (change the 8bit short to a 16bit int in the "SrvOs2FeaListSizeToNt" in srv.sys) - the problem is as always to get the patch rolled out everywhere...
-The patch was actually issued before EternalBlue was published by shadowBrokers (speculation is that NSA nudged Microsoft after being aware that the leak was imminent, they had kept it secret for a long time before that, and the vulnerability showed up before)
+\subsection{Fix the buffer overflow}
+Patching this was super simple (change the 8bit short to a 16bit int in the "SrvOs2FeaListSizeToNt" in srv.sys, see Appendix Figure \ref{fig:Ghidra_srv.sys}) - the problem is as always to get the patch rolled out.
+The patch MS2017-010 was issued March 14, 2017 \cite{MS2017-010} before EternalBlue was published April 14, 2017 \cite{enwiki:1219364760} by shadowBrokers (speculation is that NSA nudged Microsoft after being aware that the leak was imminent, they had kept it secret for a long time before that, and the vulnerability showed up before)
 
-\subsubsection{Disable "Heap Spraying"}
-Newer version of Windows uses Address Space Layout Randomization (ASLR), which makes it impossible to predict and control where packages land in memory based on the offsets 
+\subsection{Randomize HAL's location}
+Newer version of Windows uses Address Space Layout Randomization (ASLR) for the HAL process, which makes it impossible to predict and control where packages land in memory based on the offsets. 
+
+\subsection{Sandbox processes on the OS}
+Maybe these application layer interactions with the network should be sandboxed out of the heap so there is no memory cross talk possible. 
 
 
 \section{Conclusion}
@@ -166,12 +167,25 @@ In hindsight it is obvious to target the SMB protocol as a backdoor. The protoco
 \printbibliography % Output the bibliography
 
 %----------------------------------------------------------------------------------------
+
+
+
+%----------------------------------------------------------------------------------------
+%	 Appendices
+%----------------------------------------------------------------------------------------
+
+
 \clearpage
+\begin{appendices}
+\onecolumn
 \appendix
 \section{Appendix} \label{Appendix}
 
 \subsection{Buffer Overflow Bug in srv.sys}
 A figure from \cite{h3xduck} with code deconstructed from a vulnerable windows srv.sys is shown in \ref{fig:Ghidra_srv.sys}
+\newline
+Note line 27 the variable “param1” is being casted from an integer (dword) pointer to a short (word). Then in that word the subtraction of itself with another variable piVar1 is stored. Thus we are essentially casting into a short the result of the subtraction of two integers \cite{h3xduck}.
+
 
 
 \begin{figure}[ht] % Single column figure
@@ -182,11 +196,14 @@ A figure from \cite{h3xduck} with code deconstructed from a vulnerable windows s
 
 
 
-\subsection{Metasploit}
-As a demonstration of how easily the EternalBlue vulnerability can be deployed to get a system shell using Metasploit:
+\subsection{Demo using Metasploit}
+As a demonstration of how easily the EternalBlue vulnerability can be deployed to get a system shell using Metasploit, I ran the exploit on virtual machines locally on my computer:
+\subsubsection[short]{Attacer machine} Kali linux running Metasploit (see Figure \ref{fig:metasploit-pawned}).
+
+
 
 \subsubsection[short]{Target machine}
-Early Windows 7 machine (2009), the exploit is proven to work up to 2017 where a patch was introduced (MS17-010).
+Early Windows 7 machine (2009) see Figure \ref{fig:ExploitableWin7}, the exploit is proven to work up to 2017 where a patch was introduced (MS17-010).
 Only modification is that a folder was shared on the desktop with 'user' permissions (this opens the necessary outbound rules on the firewall)
 
 \begin{figure}[ht] % Single column figure
@@ -201,16 +218,20 @@ Only modification is that a folder was shared on the desktop with 'user' permiss
 	\label{fig:metasploit-pawned}
 \end{figure}
 
-\subsection{Wireshark dump}
-Wireshark dump recorded during exploit is shown, where the transaction starts with NT "NT Trans Request" No.44 and subsequent Transactions are of OS type "Trans2 Secondary Request" No.47-64. In between a new session is started "Session Setup AndX" No.135 and finally the first transaction is terminated in No.168 	     
 
+\subsubsection{Wireshark dump}
+Wireshark dump recorded during exploit is shown in Figure \ref{fig:wiresharkDump}, where the transaction starts with NT "NT Trans Request" No.44 and subsequent Transactions are of OS type "Trans2 Secondary Request" No.47-64. In between a new session is started "Session Setup AndX" No.135 and finally the first transaction is terminated in No.168 	     
+
+
+\begin{landscape}
 \begin{figure}[ht] % Single column figure
 	\includegraphics[width=\linewidth]{WiresharkEternalBlue.png}
 	\caption{SMB Traffic during exploit}
 	\label{fig:wiresharkDump}
 \end{figure}
+\end{landscape}
 
-
+\end{appendices}
 
 
 
