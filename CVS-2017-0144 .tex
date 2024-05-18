@@ -41,7 +41,7 @@
 
 
 
-\title{Eternal Blue CVE-2017-0144 \\ MICS-204 Report 1, Summer 2024} % Article title, use manual lines breaks (\\) to beautify the layout
+\title{EternalBlue CVE-2017-0144 \\ MICS-204 Report 1, Summer 2024} % Article title, use manual lines breaks (\\) to beautify the layout
 
 % Authors are listed in a comma-separated list with superscript numbers indicating affiliations
 % \thanks{} is used for any text that should be placed in a footnote on the first page, such as the corresponding author's email, journal acceptance dates, a copyright/license notice, keywords, etc
@@ -73,31 +73,36 @@ MICS Course 204 Summer 2024
 %----------------------------------------------------------------------------------------
 
 \section{Introduction}
-Eternal Blue \cite[CVE-2017-0144]{CVE-2017-0144} vulnerability has all the traits of a superstar hack, it was probably discovered and developed by NSA, leaked by hackers and quickly thereafter used in some of the worst and most destructive malware attacks the world has seen. \\
-Eternal Blue first appeared in a leak\cite{Rapid7-on-S0hadow-Broker-Leak} from a hacker group named "The Shadow Brokers"\cite{shadowBrokers-wiki} (TSB) who published a bunch of zero day exploits they claimed to have stolen from the NSA's "Equation Group \footnote{NSA’s Tailored Access division, TAO is also mentioned, darknet diaries as an episode on the shadowBrokers leak}"\cite{kaspersky-eq-group} (None of this has been confirmed). \\
-Eternal Blue exploits a vulnerability in the Microsoft Server Message Block (SMB) protocol, which is used for sharing files over a network (When you share a folder or access a networks drive, SMB is used). \\ 
-Eternal Blue enables the attacker to launch a shell on the target with windows system privileges. The vulnerability enables an attacker to cause a buffer overflow by sending packages over the protocol with false information on packet sizes.\\
-A vulnerability on SMB (which enables file shares across different users, locations and networks) giving a system shell (using DoublePulsar), in combination with credentials stealing malware e.g Mimikatz, gives the possibility for some highly potent malware to be crafted, which indeed happened (WannaCry, NotPetya etc..). This leaves Eternal Blue as the most expensive software vulnerability - yet...  
+EternalBlue \cite[CVE-2017-0144]{CVE-2017-0144} vulnerability has all the traits of a superstar hack, it was probably discovered and developed into a tool by NSA, found and leaked by hackers and quickly thereafter used in some of the worst and most destructive malware attacks the world has seen. \\
+\newline
+EternalBlue first appeared in a leak\cite{Rapid7-on-S0hadow-Broker-Leak} from a hacker group named "The Shadow Brokers"\cite{shadowBrokers-wiki} (TSB) who published a bunch of zero day exploits they claimed to have stolen from the NSA's "Equation Group \footnote{Nickname for NSA’s Tailored Access division (TAO). Darknet Diaries \cite{Darknet-Diaries-ep53} has an excellent episode on the shadowBrokers leak}"\cite{kaspersky-eq-group} (None of this has been confirmed). \\
+\newline
+EternalBlue enables the attacker to launch a shell on the target with windows system privileges. \\
+\newline
+As the vulnerability is in the Microsoft Server Message Block (SMB) protocol, which enables file shares across different users, locations and networks (When you share a folder or access a networks drive, SMB is used) it is not contained by network architecture such as subnets but s able to roam free based on how SMB is managed typically on a corporate network. EternalBlue, giving an attacker a system shell \footnote{The DoublePulsar tool, also leaked in the shadowBrokers release is a part of EternalBlue and runs 'exec' in 'kernel mode' on the target}, in combination with credentials stealing malware e.g Mimikatz, gives the possibility for some highly potent malware to be crafted, which indeed happened (WannaCry, NotPetya etc..). This leaves EternalBlue as the most expensive software vulnerability - yet...  
 
 
 
 \section{Exploits} 
 
-The vulnerability was investigated from a static analyses point of view by Zian et.al. in \cite{Zian}. Furthermore "zerosum0x0" did a presentation on how EternalBlue works at DefCon26 \cite{zerosum0x0-defcon26} (which I found helpful). \\
+The vulnerability was investigated from by Zian et.al. in \cite{Zian}. Furthermore "zerosum0x0" did a presentation on how EternalBlue works at DefCon26 \cite{zerosum0x0-defcon26} and in \cite{h3xduck} "h3xduck" did a walkthough (All of which i found useful) \\
 
-\subsection{How it Works}
-Eternal Blue is a consequence of three features/bugs in version 1 of the SMB protocol (SMBv1) \cite{Koczwara-medium} : 
+
+EternalBlue is a consequence of three features/bugs in version 1 of the SMB protocol (SMBv1) \cite{Koczwara-medium} : 
 
 \begin{enumerate}
 	\item{ \textbf{Buffer Overflow} caused by a typecasting error when casting requests from different Windows filesystems}
-	\item{ \textbf{Race Condition} when sending secondary messages (subsequent packets in same transaction) allowing attacker to allocate addresses in memory}
-	\item{ \textbf{"Heap Spraying"} data can be written to specific places in memory allowing for code to be inserted and executed}
+	\item{ \textbf{Unchecked packages} when sending secondary messages memory is allocated based on sender (attacker) controlled offset allowing allocation of memory}
+	\item{ \textbf{"Heap Spraying"} is possible: Data can be written to specific places in memory allowing for code to be inserted and executed}
 \end{enumerate}
 
 
-When sending files over the network the SMB protocol uses transactions, where information such as packet size, purpose (directory searching etc.) and a list of File Extended Attributes (FEAlist) is exchanged in a handshake. SMB runs on TCP port 445 and allows for transferring large files. Figure \ref{fig:SMB-transaction} shows the basics of a SMB transaction with a size requiring secondary packets to be send. 
+SMB runs on TCP port 445, i.e. the  exploit works on a port that needs to be open on the firewall (if you want windows file shares to work).
+When sending files over the network the SMB protocol uses transactions, where information such as packet size, purpose (the protocol has "special features" such as directory searching etc.) and a list of "File Extended Attributes" (FEAlist) is exchanged in a handshake (SMB Primary Request/Interim Response in Figure \ref{fig:SMB-transaction}). 
+\newline{}
+SMB allows for transferring large files where the transaction is split up requiring secondary packets to be send (SMB Transaction Sec. Request 1-N in Figure \ref{fig:SMB-transaction}). Large file transfers make it easier to hide suspicious packets.  
 \newline
-The FEAlist and secondary packets are important for the exploit
+The FEAlist and secondary packets are important for the exploit.
 
 
 \begin{figure} % Single column figure
@@ -106,23 +111,30 @@ The FEAlist and secondary packets are important for the exploit
 	\label{fig:SMB-transaction}
 \end{figure}
 
+\subsection{How it Works}
+
 \subsubsection{Buffer Overflow}
 The FEAlist is a list of key/value properties which are sent with the transactions. 
 
 \begin{itemize}
 	\item The client calculates the size of the FEAlist part of the transaction and sends it to the server with the transaction.  
 	\item The server allocates space in memory for the FEAlist, using pointer offsets based on the size of the list (it does not keep a 'list' variable)
-	\item The size of the list is provided by the client, and checked by the server and re-calculated if the size dos not match ('All Good' right?) 
-	\item However, there are multiple versions of the FEAlist format depending on the filesystem used (OS/2 vs NT). And there is a bug in the conversion of FEAlist file size between OS/2 and NT (bug in a function called "SrvOs2FeaListSizeToNt" in srv.sys \cite{h3xduck}) where only half the memory is allocated when sending a OS/2 formatted FEAlist - a 16 byte 'int' is cast to a 8 byte 'short' resulting in a buffer overflow see Ghidra analysis of code from \cite{h3xduck} in Appendix. 
+	\item The size of the list is provided by the client, and checked by the server and re-calculated if the size dos not match. However, 
+	\begin{itemize}
+		\item There are multiple versions of the FEAlist format depending on the filesystem used (OS/2 vs NT). And there is a bug in the conversion of FEAlist file size between OS/2 and NT (bug in a function called "SrvOs2FeaListSizeToNt" in srv.sys \cite{h3xduck}) where only half the memory is allocated when sending a OS/2 formatted FEAlist - a 16 byte 'int' is cast to a 8 byte 'short' resulting in a buffer overflow see Ghidra analysis of code from \cite{h3xduck} in Appendix Figure \ref{fig:Ghidra_srv.sys}. 
+	\end{itemize}
 \end{itemize}
 
-\subsubsection{Secondary Transactions Race}
-When the transaction size is large SMB splits it into subsequent transactions, see Figure \ref{fig:SMB-transaction}, it is \underline{the client} who tells the server where to put the subsequent packages (it provides an offset) i.e. the client (attacker) does all the bookkeeping.
 
-\subsubsection{Heap Spraying} When sending secondary messages the input flow of data is kept open until the client sends a 'final' message i.e. the client can keep sending secondary messages directly to the heap. This enables the attacker to manipulate the memory heap with some control over where data is stored. This enables the attacker to 'groom' \cite{zerosum0x0-defcon26} the memory heap and place code for a reverse shell on the target, and eventually execute it. All data in the memory heap has execution privileges, the reverse shell has NT AUTHORITY/SYSTEM privileges - and can do anything on the client, a demo is shown in \nameref{Appendix}      
+\subsubsection{Secondary Transactions, unchecked}
+When the transaction size is large, SMB splits it into subsequent transactions, see Figure \ref{fig:SMB-transaction}. The client provides the packet size, which is used as offset for memory allocation i.e. the client (attacker) decides where data is stored in memory. The packets of data are kept as "non-paged" by srv.sys on the heap until all the secondary packets have arrived, this is indicated with a flag in the last packet (again the attacker controls that). 
 
+In Figure \ref{fig:SMB-transaction} 'Transaction Sec.' requests can be submitted until the 'N'th' packet containing the end flag. In between, a new handshake for a new transaction can be 'weaved in' while keeping the stream of secondary packets flowing. The system does not check the format of the packets, there are 2 different kinds: 'COM' and 'NT' each with their own secondary packets, the protocol assumes the packet format to be that of the final packet send, therefore it is possible to mix the OS and NT packets. And send the first packet as 'NT' with the incorrect FEAList size followed by a subsequent 'OS' type packets. This allows for sending secondary OS packages with the FEAList buffer overflow 'feature' (if we were sending OS only, the double 16bit FEAList would not be allowed)
+\newline
+In appendix a Wireshark dump recorded during exploit is shown, where the transaction starts with NT \footnote{"NT Trans Request"} and subsequent Transactions are of OS type \footnote{"Trans2 Secondary Request"}. In between a new session is started \footnote{"Session Setup AndX"}      
 
-zerosum0x0-defcon26
+\subsubsection{Heap Grooming}
+By controlling when the initial stream of packets is terminated and sending a payload in between start and end, an attacker is able to "groom" the memory and determine where subsequent overflowed data is stored in the heap. When sending secondary messages the input flow of data is kept open until the client sends a 'final' message i.e. the client can keep sending secondary messages directly to the heap. This enables the attacker to manipulate the memory heap with some control over where data is stored. This enables the attacker to 'groom' \cite{zerosum0x0-defcon26} the memory heap and place code for a reverse shell on the target, and eventually execute it. All data in the memory heap has execution privileges, the reverse shell has NT AUTHORITY/SYSTEM privileges - and can do anything on the client, a demo is shown in \nameref{Appendix}      
 
 
 
@@ -134,13 +146,16 @@ It looks like the vulnerability was introduced as a consequence of reverse compa
 \section{Remediation} 
 describe and explain the fix
 
-\subsubsection{Disable buffer overflow}
+\subsection{Disable buffer overflow}
 Patching this was super simple (change the 8bit short to a 16bit int in the "SrvOs2FeaListSizeToNt" in srv.sys) - the problem is as always to get the patch rolled out everywhere...
 The patch was actually issued before EternalBlue was published by shadowBrokers (speculation is that NSA nudged Microsoft after being aware that the leak was imminent, they had kept it secret for a long time before that, and the vulnerability showed up before)
 
 \subsubsection{Disable "Heap Spraying"}
 Newer version of Windows uses Address Space Layout Randomization (ASLR), which makes it impossible to predict and control where packages land in memory based on the offsets 
 
+
+\section{Conclusion}
+In hindsight it is obvious to target the SMB protocol as a backdoor. The protocol works close to the operating system (memory is allocated directly on the heap with system privileges), the protocol is designed to be lightweight in terms of package checks and balances (the memory is allocated based on sender specified offsets) Presumably all of this is done to make the transfer of files feel as close to a local operation as possible. Later versions ( > 1) of SMB had removed the 'extra' messages used by EternalBlue and were not affected, but at the time systems kept the earlier SMB versions in the stack for backwards compatibility, in fact a recommendation against EternalBlue is to disable version 1 of SMB.       
 
 
 
@@ -184,6 +199,15 @@ Only modification is that a folder was shared on the desktop with 'user' permiss
 	\includegraphics[width=\linewidth]{metasploit-pawned.png}
 	\caption{Very easy with Metasploit}
 	\label{fig:metasploit-pawned}
+\end{figure}
+
+\subsection{Wireshark dump}
+Wireshark dump recorded during exploit is shown, where the transaction starts with NT "NT Trans Request" No.44 and subsequent Transactions are of OS type "Trans2 Secondary Request" No.47-64. In between a new session is started "Session Setup AndX" No.135 and finally the first transaction is terminated in No.168 	     
+
+\begin{figure}[ht] % Single column figure
+	\includegraphics[width=\linewidth]{WiresharkEternalBlue.png}
+	\caption{SMB Traffic during exploit}
+	\label{fig:wiresharkDump}
 \end{figure}
 
 
